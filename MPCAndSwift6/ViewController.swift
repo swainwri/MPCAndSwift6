@@ -15,12 +15,6 @@ class ViewController: UIViewController {
     
     var peers: [MCPeerID] = []
     var administrator: MCPeerID?
-    
-    // MPCActor instance
-    var mpc: MPCActor?
-    var sessionBridge: MCSessionDelegateBridge?
-    var advertiserBridge: MPCAdvertiserDelegateBridge?
-    var browserBridge: MPCBrowserDelegateBridge?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,7 +23,6 @@ class ViewController: UIViewController {
         tableView?.dataSource = self
         tableView?.delegate = self
 
-//        setupMPCActor()
         PeerSessionManager.shared.setup()
         setupPeerSessionCallbacks()
         
