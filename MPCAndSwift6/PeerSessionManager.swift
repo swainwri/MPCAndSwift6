@@ -173,7 +173,7 @@ final class PeerSessionManager {
                 print("File receive error:", error)
             } else {
                 print("File received from \(peer.displayName): \(url.lastPathComponent)")
-                onFileReceived?(peer, url, name)
+                onFileReceived?(peer, url, "test.txt")
             }
         }
         sendAck(to: peer)
@@ -281,7 +281,7 @@ extension PeerSessionManager {
     
     func fileReceived(url: URL, from peer: MCPeerID) {
         print("Received file \(url.lastPathComponent) from \(peer.displayName)")
-        onFileReceived?(peer, url)
+        onFileReceived?(peer, url, "test.txt")
     }
     
     @MainActor

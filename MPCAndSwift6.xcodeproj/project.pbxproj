@@ -12,14 +12,14 @@
 			containerPortal = E3A18D9C2F1623980094B138 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E3A18DA32F1623980094B138;
-			remoteInfo = BarTalking;
+			remoteInfo = MPCAndSwift6;
 		};
 		E3A18DC82F16239A0094B138 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E3A18D9C2F1623980094B138 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E3A18DA32F1623980094B138;
-			remoteInfo = BarTalking;
+			remoteInfo = MPCAndSwift6;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -126,7 +126,7 @@
 			name = MPCAndSwift6;
 			packageProductDependencies = (
 			);
-			productName = BarTalking;
+			productName = MPCAndSwift6;
 			productReference = E3A18DA42F1623980094B138 /* MPCAndSwift6.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -149,7 +149,7 @@
 			name = MPCAndSwift6Tests;
 			packageProductDependencies = (
 			);
-			productName = BarTalkingTests;
+			productName = MPCAndSwift6Tests;
 			productReference = E3A18DBD2F16239A0094B138 /* MPCAndSwift6Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -172,7 +172,7 @@
 			name = MPCAndSwift6UITests;
 			packageProductDependencies = (
 			);
-			productName = BarTalkingUITests;
+			productName = MPCAndSwift6UITests;
 			productReference = E3A18DC72F16239A0094B138 /* MPCAndSwift6UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
@@ -291,7 +291,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = HGMRL5A68M;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = BarTalking/Info.plist;
+				INFOPLIST_FILE = MPCAndSwift6/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -325,7 +325,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = HGMRL5A68M;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = BarTalking/Info.plist;
+				INFOPLIST_FILE = MPCAndSwift6/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -531,7 +531,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = BarTalking;
+				TEST_TARGET_NAME = MPCAndSwift6;
 			};
 			name = Debug;
 		};
@@ -551,7 +551,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = BarTalking;
+				TEST_TARGET_NAME = MPCAndSwift6;
 			};
 			name = Release;
 		};

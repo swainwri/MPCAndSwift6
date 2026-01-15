@@ -66,8 +66,7 @@ final class MPCAdvertiserDelegateBridge: NSObject, MCNearbyServiceAdvertiserDele
         super.init()
     }
 
-    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID,
-                    withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
+    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         Task {
             await actor.handleInvitation(from: peerID, context: context, invitationHandler: invitationHandler)
         }
