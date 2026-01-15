@@ -82,10 +82,10 @@ This avoids:
 A UI-facing coordinator that:
 -	tracks peers and connection state
 -	exposes callbacks like:
-- 	onPeersUpdated
--	onPeerStateChanged
--   onInvitationReceived
--   feeds data into the UITableView
+ 		onPeersUpdated
+		onPeerStateChanged
+     	onInvitationReceived
+- 	feeds data into the UITableView
 -   sures all UI updates occur on the main actor
 
 ### Why This Repo Exists
