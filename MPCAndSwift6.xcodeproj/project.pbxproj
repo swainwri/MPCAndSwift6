@@ -24,38 +24,38 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		E3A18DA42F1623980094B138 /* BarTalking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BarTalking.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E3A18DBD2F16239A0094B138 /* BarTalkingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarTalkingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E3A18DC72F16239A0094B138 /* BarTalkingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BarTalkingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3A18DA42F1623980094B138 /* MPCAndSwift6.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MPCAndSwift6.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3A18DBD2F16239A0094B138 /* MPCAndSwift6Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MPCAndSwift6Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3A18DC72F16239A0094B138 /* MPCAndSwift6UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MPCAndSwift6UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		E3A18DCF2F16239A0094B138 /* Exceptions for "BarTalking" folder in "BarTalking" target */ = {
+		E3A18DCF2F16239A0094B138 /* Exceptions for "MPCAndSwift6" folder in "MPCAndSwift6" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = E3A18DA32F1623980094B138 /* BarTalking */;
+			target = E3A18DA32F1623980094B138 /* MPCAndSwift6 */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E3A18DA62F1623980094B138 /* BarTalking */ = {
+		E3A18DA62F1623980094B138 /* MPCAndSwift6 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				E3A18DCF2F16239A0094B138 /* Exceptions for "BarTalking" folder in "BarTalking" target */,
+				E3A18DCF2F16239A0094B138 /* Exceptions for "MPCAndSwift6" folder in "MPCAndSwift6" target */,
 			);
-			path = BarTalking;
+			path = MPCAndSwift6;
 			sourceTree = "<group>";
 		};
-		E3A18DC02F16239A0094B138 /* BarTalkingTests */ = {
+		E3A18DC02F16239A0094B138 /* MPCAndSwift6Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BarTalkingTests;
+			path = MPCAndSwift6Tests;
 			sourceTree = "<group>";
 		};
-		E3A18DCA2F16239A0094B138 /* BarTalkingUITests */ = {
+		E3A18DCA2F16239A0094B138 /* MPCAndSwift6UITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BarTalkingUITests;
+			path = MPCAndSwift6UITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -88,9 +88,9 @@
 		E3A18D9B2F1623980094B138 = {
 			isa = PBXGroup;
 			children = (
-				E3A18DA62F1623980094B138 /* BarTalking */,
-				E3A18DC02F16239A0094B138 /* BarTalkingTests */,
-				E3A18DCA2F16239A0094B138 /* BarTalkingUITests */,
+				E3A18DA62F1623980094B138 /* MPCAndSwift6 */,
+				E3A18DC02F16239A0094B138 /* MPCAndSwift6Tests */,
+				E3A18DCA2F16239A0094B138 /* MPCAndSwift6UITests */,
 				E3A18DA52F1623980094B138 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -98,9 +98,9 @@
 		E3A18DA52F1623980094B138 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E3A18DA42F1623980094B138 /* BarTalking.app */,
-				E3A18DBD2F16239A0094B138 /* BarTalkingTests.xctest */,
-				E3A18DC72F16239A0094B138 /* BarTalkingUITests.xctest */,
+				E3A18DA42F1623980094B138 /* MPCAndSwift6.app */,
+				E3A18DBD2F16239A0094B138 /* MPCAndSwift6Tests.xctest */,
+				E3A18DC72F16239A0094B138 /* MPCAndSwift6UITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,9 +108,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E3A18DA32F1623980094B138 /* BarTalking */ = {
+		E3A18DA32F1623980094B138 /* MPCAndSwift6 */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E3A18DD02F16239A0094B138 /* Build configuration list for PBXNativeTarget "BarTalking" */;
+			buildConfigurationList = E3A18DD02F16239A0094B138 /* Build configuration list for PBXNativeTarget "MPCAndSwift6" */;
 			buildPhases = (
 				E3A18DA02F1623980094B138 /* Sources */,
 				E3A18DA12F1623980094B138 /* Frameworks */,
@@ -121,18 +121,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				E3A18DA62F1623980094B138 /* BarTalking */,
+				E3A18DA62F1623980094B138 /* MPCAndSwift6 */,
 			);
-			name = BarTalking;
+			name = MPCAndSwift6;
 			packageProductDependencies = (
 			);
 			productName = BarTalking;
-			productReference = E3A18DA42F1623980094B138 /* BarTalking.app */;
+			productReference = E3A18DA42F1623980094B138 /* MPCAndSwift6.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E3A18DBC2F16239A0094B138 /* BarTalkingTests */ = {
+		E3A18DBC2F16239A0094B138 /* MPCAndSwift6Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E3A18DD52F16239A0094B138 /* Build configuration list for PBXNativeTarget "BarTalkingTests" */;
+			buildConfigurationList = E3A18DD52F16239A0094B138 /* Build configuration list for PBXNativeTarget "MPCAndSwift6Tests" */;
 			buildPhases = (
 				E3A18DB92F16239A0094B138 /* Sources */,
 				E3A18DBA2F16239A0094B138 /* Frameworks */,
@@ -144,18 +144,18 @@
 				E3A18DBF2F16239A0094B138 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E3A18DC02F16239A0094B138 /* BarTalkingTests */,
+				E3A18DC02F16239A0094B138 /* MPCAndSwift6Tests */,
 			);
-			name = BarTalkingTests;
+			name = MPCAndSwift6Tests;
 			packageProductDependencies = (
 			);
 			productName = BarTalkingTests;
-			productReference = E3A18DBD2F16239A0094B138 /* BarTalkingTests.xctest */;
+			productReference = E3A18DBD2F16239A0094B138 /* MPCAndSwift6Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		E3A18DC62F16239A0094B138 /* BarTalkingUITests */ = {
+		E3A18DC62F16239A0094B138 /* MPCAndSwift6UITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E3A18DD82F16239A0094B138 /* Build configuration list for PBXNativeTarget "BarTalkingUITests" */;
+			buildConfigurationList = E3A18DD82F16239A0094B138 /* Build configuration list for PBXNativeTarget "MPCAndSwift6UITests" */;
 			buildPhases = (
 				E3A18DC32F16239A0094B138 /* Sources */,
 				E3A18DC42F16239A0094B138 /* Frameworks */,
@@ -167,13 +167,13 @@
 				E3A18DC92F16239A0094B138 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E3A18DCA2F16239A0094B138 /* BarTalkingUITests */,
+				E3A18DCA2F16239A0094B138 /* MPCAndSwift6UITests */,
 			);
-			name = BarTalkingUITests;
+			name = MPCAndSwift6UITests;
 			packageProductDependencies = (
 			);
 			productName = BarTalkingUITests;
-			productReference = E3A18DC72F16239A0094B138 /* BarTalkingUITests.xctest */;
+			productReference = E3A18DC72F16239A0094B138 /* MPCAndSwift6UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -199,7 +199,7 @@
 					};
 				};
 			};
-			buildConfigurationList = E3A18D9F2F1623980094B138 /* Build configuration list for PBXProject "BarTalking" */;
+			buildConfigurationList = E3A18D9F2F1623980094B138 /* Build configuration list for PBXProject "MPCAndSwift6" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -213,9 +213,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E3A18DA32F1623980094B138 /* BarTalking */,
-				E3A18DBC2F16239A0094B138 /* BarTalkingTests */,
-				E3A18DC62F16239A0094B138 /* BarTalkingUITests */,
+				E3A18DA32F1623980094B138 /* MPCAndSwift6 */,
+				E3A18DBC2F16239A0094B138 /* MPCAndSwift6Tests */,
+				E3A18DC62F16239A0094B138 /* MPCAndSwift6UITests */,
 			);
 		};
 /* End PBXProject section */
@@ -271,12 +271,12 @@
 /* Begin PBXTargetDependency section */
 		E3A18DBF2F16239A0094B138 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E3A18DA32F1623980094B138 /* BarTalking */;
+			target = E3A18DA32F1623980094B138 /* MPCAndSwift6 */;
 			targetProxy = E3A18DBE2F16239A0094B138 /* PBXContainerItemProxy */;
 		};
 		E3A18DC92F16239A0094B138 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E3A18DA32F1623980094B138 /* BarTalking */;
+			target = E3A18DA32F1623980094B138 /* MPCAndSwift6 */;
 			targetProxy = E3A18DC82F16239A0094B138 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -292,6 +292,7 @@
 				DEVELOPMENT_TEAM = HGMRL5A68M;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BarTalking/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -303,7 +304,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.BarTalking;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.MPCAndSwift6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -325,6 +326,7 @@
 				DEVELOPMENT_TEAM = HGMRL5A68M;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BarTalking/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -336,7 +338,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.BarTalking;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.MPCAndSwift6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -479,7 +481,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.BarTalkingTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.MPCAndSwift6Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -487,7 +489,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarTalking.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarTalking";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MPCAndSwift6.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MPCAndSwift6";
 			};
 			name = Debug;
 		};
@@ -501,7 +503,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.BarTalkingTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.MPCAndSwift6Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -509,7 +511,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BarTalking.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BarTalking";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MPCAndSwift6.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MPCAndSwift6";
 			};
 			name = Release;
 		};
@@ -521,7 +523,7 @@
 				DEVELOPMENT_TEAM = HGMRL5A68M;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.BarTalkingUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.MPCAndSwift6UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -541,7 +543,7 @@
 				DEVELOPMENT_TEAM = HGMRL5A68M;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.BarTalkingUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whichtoolface.MPCAndSwift6UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -556,7 +558,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E3A18D9F2F1623980094B138 /* Build configuration list for PBXProject "BarTalking" */ = {
+		E3A18D9F2F1623980094B138 /* Build configuration list for PBXProject "MPCAndSwift6" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3A18DD32F16239A0094B138 /* Debug */,
@@ -565,7 +567,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E3A18DD02F16239A0094B138 /* Build configuration list for PBXNativeTarget "BarTalking" */ = {
+		E3A18DD02F16239A0094B138 /* Build configuration list for PBXNativeTarget "MPCAndSwift6" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3A18DD12F16239A0094B138 /* Debug */,
@@ -574,7 +576,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E3A18DD52F16239A0094B138 /* Build configuration list for PBXNativeTarget "BarTalkingTests" */ = {
+		E3A18DD52F16239A0094B138 /* Build configuration list for PBXNativeTarget "MPCAndSwift6Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3A18DD62F16239A0094B138 /* Debug */,
@@ -583,7 +585,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E3A18DD82F16239A0094B138 /* Build configuration list for PBXNativeTarget "BarTalkingUITests" */ = {
+		E3A18DD82F16239A0094B138 /* Build configuration list for PBXNativeTarget "MPCAndSwift6UITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3A18DD92F16239A0094B138 /* Debug */,

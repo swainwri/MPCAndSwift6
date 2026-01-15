@@ -1,13 +1,13 @@
 //
-//  BarTalkingUITestsLaunchTests.swift
-//  BarTalkingUITests
+//  MPCAndSwift6UITestsLaunchTests.swift
+//  MPCAndSwift6UITests
 //
 //  Created by Steve Wainwright on 13/01/2026.
 //
 
 import XCTest
 
-final class BarTalkingUITestsLaunchTests: XCTestCase {
+final class MPCAndSwift6UITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
