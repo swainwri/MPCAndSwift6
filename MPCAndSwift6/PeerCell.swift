@@ -20,11 +20,15 @@ final class PeerCell: UITableViewCell {
     @IBAction func sendMessageTapped() { onSendMessage?() }
     @IBAction func sendFileTapped() { onSendFile?() }
     
-    override func awakeFromNib() {
+    override nonisolated func awakeFromNib() {
         super.awakeFromNib()
-        configureAccessibility()
+        
+        Task { @MainActor in
+            configureAccessibility()
+        }
     }
 
+    @MainActor
     private func configureAccessibility() {
         messageButton?.accessibilityLabel = "Send message"
         messageButton?.accessibilityHint = "Sends a text message to this peer"

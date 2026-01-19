@@ -14,12 +14,15 @@ enum PeerConnectionState {
     case connected
 }
 
-struct PeerUIState: Hashable {
-    let peerID: MCPeerID
-    var state: MCSessionState
+struct PeerSnapshot: Sendable, Hashable {
+    let id: UUID
+    let displayName: String
 }
 
-
+struct PeerUIState: Hashable {
+    let peerSnapshot: PeerSnapshot
+    var state: MCSessionState
+}
 
 @MainActor
 final class PeerSessionManager {
@@ -32,112 +35,174 @@ final class PeerSessionManager {
     static let shared = PeerSessionManager()
     
     // MARK: - Properties
-    private(set) var peers: [MCPeerID] = []
-    private(set) var administrator: MCPeerID?
-    private(set) var peerStates: [MCPeerID: PeerConnectionState] = [:]
+    @MainActor
+    private(set) var peers: [PeerSnapshot] = []
+    
+    private(set) var administrator: PeerSnapshot?
+    private(set) var peerStates: [UUID: PeerConnectionState] = [:]
     private(set) var peersUIState: [PeerUIState] = []
-    private(set) var progressByPeer: [MCPeerID: Progress] = [:]
-
+    private(set) var progressByPeer: [UUID: Progress] = [:]
+    private var pendingInvitationID: UUID?
+    private var invitationHandlers: [UUID: (Bool, MCSession?) -> Void] = [:]
+    
+    private var advertiser: MCNearbyServiceAdvertiser?
+    private var browser: MCNearbyServiceBrowser?
+    
+    private var pendingInvitationRespond: ((Bool) -> Void)?
+    
     private var sessionBridge: MCSessionDelegateBridge?
     private var advertiserBridge: MPCAdvertiserDelegateBridge?
     private var browserBridge: MPCBrowserDelegateBridge?
     
+    var session: MCSession?   // ← REQUIRED
     private var mpc: MPCActor?     // <-- Actor instance
     private var myPeerID: MCPeerID?
     private var hostName: String?
     private var serviceType: String?
 
-    var onPeerFound: ((MCPeerID, [String: String]?) -> Void)?
-    var onPeerLost: ((MCPeerID) -> Void)?
-    var onInvitationReceived: ((MCPeerID, @escaping (Bool) -> Void) -> Void)?
+    var onPeerFound: ((PeerSnapshot, [String: String]?) -> Void)?
+    var onPeerLost: ((PeerSnapshot) -> Void)?
+    var onInvitationReceived: ((PeerSnapshot) -> Void)?
     var onProgressUpdate: ((ProgressSnapshot, String, Set<ObjectIdentifier>) -> Void)?
     var onPeerStateChanged: (() -> Void)?
     var onPeersUpdated: (() -> Void)?
-    var onMessageReceived: ((MCPeerID, String) -> Void)?
-    var onFileReceived: ((MCPeerID, URL, String) -> Void)?
-    var onSendResource: ((MCPeerID, Progress?) -> Void)?
+    var onMessageReceived: ((PeerSnapshot, String) -> Void)?
+    var onFileReceived: ((PeerSnapshot, URL, String) -> Void)?
+    var onSendResource: ((PeerSnapshot, Progress?) -> Void)?
     
     private init() {}
     
-    func setup() {
+    func setup() async {
         let name = UIDevice.current.name
         self.hostName = name
         let peerID = MCPeerID(displayName: PeerSessionManager.makeSafeDeviceName(name))
 
         let defaultServiceType: String = {
             let raw = (Bundle.main.object(forInfoDictionaryKey: "NSBonjourServices") as? [String])?.first ?? "_fallback._tcp"
-            let trimmed = raw
-                .trimmingCharacters(in: CharacterSet(charactersIn: "_"))
-                .components(separatedBy: ".")
-                .first ?? "fallback"
+            let trimmed = raw.trimmingCharacters(in: CharacterSet(charactersIn: "_")).components(separatedBy: ".").first ?? "fallback"
             return trimmed.lowercased()
         }()
         self.serviceType = defaultServiceType
         self.myPeerID = peerID
+        print(self.serviceType ?? "Unknown")
     }
     
-    func start() {
+    func start() async {
         if let myPeerID,
            let serviceType {
-            self.mpc = MPCActor(myPeerID: myPeerID, serviceType: serviceType)
-            if let mpc {
-                let session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
-                let advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: nil, serviceType: serviceType)
-                let browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: serviceType)
-                
-                let sessionBridge = MCSessionDelegateBridge(actor: mpc)
-                let advertiserBridge = MPCAdvertiserDelegateBridge(actor: mpc)
-                let browserBridge = MPCBrowserDelegateBridge(actor: mpc)
-                
-                session.delegate = sessionBridge
-                advertiser.delegate = advertiserBridge
-                browser.delegate = browserBridge
-                
-                self.sessionBridge = sessionBridge
-                self.advertiserBridge = advertiserBridge
-                self.browserBridge = browserBridge
-                
-                Task {
-                    await mpc.start(session: session, advertiser: advertiser, browser: browser)
+            
+            // ✅ CREATE SESSION HERE
+            let session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
+            self.session = session
+            print("SESSION CREATED:", ObjectIdentifier(session))
+            
+            let advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: nil, serviceType: serviceType)
+            self.advertiser = advertiser
+            let browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: serviceType)
+            self.browser = browser
+            
+            // Actor does NOT create session
+            let mpc = MPCActor(myPeerID: myPeerID, serviceType: serviceType)
+            self.mpc = mpc
+            await mpc.setSession(session)
+            await mpc.setEventHandler { [weak self] (event: MPCEvent) in
+                guard let self else { return }
+                Task { @MainActor in
+                    self.handle(event)
                 }
             }
+            
+            let sessionBridge = MCSessionDelegateBridge(actor: mpc)
+            self.sessionBridge = sessionBridge
+            let advertiserBridge = MPCAdvertiserDelegateBridge(session: session, manager: self)
+            self.advertiserBridge = advertiserBridge
+            let browserBridge = MPCBrowserDelegateBridge(actor: mpc)
+            self.browserBridge = browserBridge
+            
+            session.delegate = sessionBridge
+            advertiser.delegate = advertiserBridge
+            browser.delegate = browserBridge
+            
+            bindActor()
+//            Task {
+//                await mpc.start(session: session, advertiser: advertiser, browser: browser)
+//            }
+            advertiser.startAdvertisingPeer()
+            browser.startBrowsingForPeers()
         }
+        if let session {
+            print("Manager session:", ObjectIdentifier(session))
+        }
+        Task {
+            if let session = await self.mpc?.session {
+                print("Actor session:", ObjectIdentifier(session))
+            }
+        }
+        print("Peers:", peers.map(\.id))
+        print("States:", peerStates)
     }
     
     func reset() async {
-        if let mpc {
-            await mpc.shutdown()
+        peers.removeAll()
+        peerStates.removeAll()
+        peersUIState.removeAll()
+        progressByPeer.removeAll()
+        invitationHandlers.removeAll()
+
+        shutdown()
+        await start()
+    }
+    
+    func shutdown() {
+        // Stop discovery first
+        self.browser?.stopBrowsingForPeers()
+        self.advertiser?.stopAdvertisingPeer()
+        // Disconnect session
+        self.session?.disconnect()
+    }
+    
+    // MARK: - Handler Events
+    
+    @MainActor
+    private func handle(_ event: MPCEvent) {
+        switch event {
+            case .peersChanged(let snapshots):
+                self.peers = snapshots
+                self.onPeersUpdated?()
+
+            case .stateChanged(let uuid, let state):
+                self.peerStates[uuid] = state
+                self.onPeerStateChanged?()
         }
-        start()
     }
     
     // MARK: - Peer Events
         
-    func peerFound(_ peerID: MCPeerID, discoveryInfo: [String: String]?) async {
-        if !peers.contains(peerID) {
-            peers.append(peerID)
-            onPeerFound?(peerID, discoveryInfo)
+    func peerFound(_ peerSnapShot: PeerSnapshot, discoveryInfo: [String: String]?) async {
+        if !containsPeer(id: peerSnapShot.id) {
+            peers.append(peerSnapShot)
+            onPeerFound?(peerSnapShot, discoveryInfo)
         }
     }
 
-    func peerLost(_ peerID: MCPeerID) async {
-        if let idx = peers.firstIndex(of: peerID) {
+    func peerLost(_ peerSnapShot: PeerSnapshot) async {
+        if let idx = peers.map({ $0.id }).firstIndex(of: peerSnapShot.id) {
             peers.remove(at: idx)
             // if lost admin, clear
-            if peerID == administrator {
+            if peerSnapShot == administrator {
                 administrator = nil
             }
-            onPeerLost?(peerID)
+            onPeerLost?(peerSnapShot)
         }
     }
 
     func browserFailed(_ error: Error) async {}
 
-    func receivedInvitation(from peerID: MCPeerID, context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void, session: MCSession?) async {
-        print("📨 Invitation received from \(peerID.displayName)")
-        onInvitationReceived?(peerID) { accepted in
+    func receivedInvitation(from peerSnapshot: PeerSnapshot, context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void, session: MCSession?) async {
+        print("📨 Invitation received from \(peerSnapshot.displayName)")
+        onInvitationReceived?(peerSnapshot) /*{ accepted in
             invitationHandler(accepted, accepted ? session : nil)
-        }
+        }*/
     }
 
     func notifyProgress(snapshot: ProgressSnapshot, filename: String, peers: Set<ObjectIdentifier>) async {
@@ -147,69 +212,90 @@ final class PeerSessionManager {
     }
     
     // MARK: - Message
-    func sendTestMessage(to peer: MCPeerID) {
+    func sendTestMessage(to peerSnapshot: PeerSnapshot) {
         let text = "Hello from \(UIDevice.current.name)"
         let data = Data(text.utf8)
 
         Task {
-            await mpc?.sendMessage(data, to: peer)
+            try await mpc?.sendMessage(data, to: peerSnapshot)
         }
     }
     
     // MARK: - File
-    func sendTestFile(to peer: MCPeerID) {
+    func sendTestFile(to peerSnapshot: PeerSnapshot) {
         guard let url = Bundle.main.url(forResource: "test", withExtension: "txt") else {
             print("Test file missing")
             return
         }
         Task {
-            await mpc?.sendFile(at: url, to: peer)
+            await mpc?.sendFile(at: url, to: peerSnapshot)
         }
     }    
     
-    func fileReceived(url: URL, from peer: MCPeerID, error: Error?) {
+    func fileReceived(url: URL, from peerSnapshot: PeerSnapshot, error: Error?) {
         Task { @MainActor in
             if let error {
                 print("File receive error:", error)
             } else {
-                print("File received from \(peer.displayName): \(url.lastPathComponent)")
-                onFileReceived?(peer, url, "test.txt")
+                print("File received from \(peerSnapshot.displayName): \(url.lastPathComponent)")
+                onFileReceived?(peerSnapshot, url, "test.txt")
             }
         }
-        sendAck(to: peer)
+        sendAck(to: peerSnapshot)
     }
         
-    func messageReceived(_ data: Data, from peer: MCPeerID) {
+    func messageReceived(_ data: Data, from peerSnapshot: PeerSnapshot) {
         let text = String(decoding: data, as: UTF8.self)
         Task { @MainActor in
-            print("Message received from \(peer.displayName): \(text)")
+            print("Message received from \(peerSnapshot.displayName): \(text)")
         }
         switch parse(text) {
             case .ack:
-                print("ACK received from \(peer.displayName)")
+                print("ACK received from \(peerSnapshot.displayName)")
 
             case .message(let body):
                 print("Message received:", body)
-                onMessageReceived?(peer, body)
-                sendAck(to: peer)
+                onMessageReceived?(peerSnapshot, body)
+                sendAck(to: peerSnapshot)
         }
     }
         
-    private func sendAck(to peer: MCPeerID) {
+    private func sendAck(to peerSnapshot: PeerSnapshot) {
         Task {
-            await mpc?.sendAck(to: peer)
+            await mpc?.sendACK(to: peerSnapshot)
         }
     }
     
     // MARK: - Admin
-    func assignAdministrator(_ peerID: MCPeerID) {
-        if peers.contains(peerID) {
-            administrator = peerID
+    func assignAdministrator(_ peerSnapshot: PeerSnapshot) {
+        if peers.contains(peerSnapshot) {
+            administrator = peerSnapshot
         }
     }
 
     func clearAdministrator() {
         administrator = nil
+    }
+    
+    // MARK: - Invitations
+    
+    func registerInvitation(id: UUID, handler: @escaping (Bool, MCSession?) -> Void) {
+        invitationHandlers[id] = handler
+    }
+
+//    func resolveInvitation(id: UUID, accept: Bool) {
+//        guard let handler = invitationHandlers.removeValue(forKey: id) else { return }
+//        handler(accept, accept ? session : nil)
+//    }
+    
+    func invitationReceived(from peer: PeerSnapshot, respond: @escaping (Bool) -> Void) {
+        pendingInvitationRespond = respond
+        onInvitationReceived?(peer)
+    }
+
+    func acceptInvitation(_ accept: Bool) {
+        pendingInvitationRespond?(accept)
+        pendingInvitationRespond = nil
     }
     
     // MARK: - Miscellaneous Utility Methods
@@ -233,89 +319,120 @@ final class PeerSessionManager {
         if text == "ACK" { return .ack }
         return .message(text)
     }
+    
+    private func containsPeer(id: UUID) -> Bool {
+        peers.contains { $0.id == id }
+    }
+    
+    func mpcActorSnapshot(for peerID: MCPeerID) async -> PeerSnapshot? {
+        return await mpc?.didDiscoverPeer(peerID)
+    }
+    
 }
+
+// MARK:- Extensions
 
 extension PeerSessionManager {
     
-    func invite(peer: MCPeerID) async {
-        guard let mpc, let _ = await mpc.session, let _ = await mpc.browser else { return }
-
-        // Use MCNearbyServiceAdvertiser to send invitation
-        //mpc.invitePeer(peer, to: session, withContext: nil, timeout: 20)
-        print("PeerSession Manager Invitation sent to \(peer.displayName)")
-        await mpc.invitePeer(peer)
-    }
-    
-    func sendMessage(_ text: String, to peer: MCPeerID) async {
-        guard let mpc, let session = await mpc.session else { return }
-        let data = Data(text.utf8)
-        do {
-            try session.send(data, toPeers: [peer], with: .reliable)
-        }
-        catch {
-            print("Failed to send message: \(error)")
-        }
-    }
-    
-    func receiveMessage(_ text: String, from peer: MCPeerID) {
-        print("Message from \(peer.displayName): \(text)")
-        onMessageReceived?(peer, text)
-    }
-    
-    func sendFile(url: URL, to peer: MCPeerID) async {
-        guard let mpc, let session = await mpc.session else { return }
-        let progress = session.sendResource(at: url, withName: url.lastPathComponent, toPeer: peer) { [weak self] error in
-            if let error = error {
-                print("File send failed: \(error)")
-            } else {
-                print("File sent successfully to \(peer.displayName)")
+    @MainActor
+    func bindActor() {
+        Task {
+            await self.mpc?.setOnCommand { [weak self] command in
+                Task { @MainActor in
+                    self?.handle(command)
+                }
             }
-//            Task {
-//                await self?.resourceSendCompleted(to: peer, error: error)
-//            }
-            self?.resourceSendCompleted(to: peer, error: error)
         }
-        progressByPeer[peer] = progress
-        onSendResource?(peer, progress)
-    }
-    
-    func fileReceived(url: URL, from peer: MCPeerID) {
-        print("Received file \(url.lastPathComponent) from \(peer.displayName)")
-        onFileReceived?(peer, url, "test.txt")
     }
     
     @MainActor
-    func peerStateChanged(_ peerID: MCPeerID, state: MCSessionState) {
-        let mapped: PeerConnectionState
-        switch state {
-            case .connected:
-                mapped = .connected
-            case .connecting:
-                mapped = .connecting
-            case .notConnected:
-                mapped = .notConnected
-            @unknown default:
-                mapped = .notConnected
+    private func handle(_ command: MPCActor.Command) {
+        guard let session else { return }
+
+        switch command {
+            case .invite(let peerID):
+                browser?.invitePeer(peerID, to: session, withContext: nil, timeout: 20)
+                print("PeerSession Manager Invitation sent to \(peerID.displayName) through onCommand handle from MPCActor.")
+
+            case .sendData(let peerID, let data):
+                guard session.connectedPeers.contains(peerID) else { return }
+                try? session.send(data, toPeers: [peerID], with: .reliable)
+                print("PeerSession Manager sends message to \(peerID.displayName) through onCommand handle from MPCActor.")
+                
+            case .sendFile(let peerID, let snapshot, let url):
+                if let progress = session.sendResource(at: url, withName: url.lastPathComponent, toPeer: peerID, withCompletionHandler: { [weak self] error in
+                    print("PeerSession Manager sends file to \(peerID.displayName) through onCommand handle from MPCActor.")
+                    Task {
+                        await self?.mpc?.resourceSendCompleted(snapshot.id, error)
+                    }
+                }) {
+                    onSendResource?(snapshot, progress)
+                }
         }
-        peerStates[peerID] = mapped
-        onPeerStateChanged?()
-        
-        if let index = peersUIState.firstIndex(where: { $0.peerID == peerID }) {
-            peersUIState[index].state = state
-        } else {
-            peersUIState.append(PeerUIState(peerID: peerID, state: state))
+    }
+ 
+    func invite(peerSnapshot: PeerSnapshot) async {
+        if let mpc {
+            print("PeerSession Manager Invitation sent to \(peerSnapshot.displayName)")
+            await mpc.invitePeer(peerSnapshot)
         }
-        onPeersUpdated?()
     }
     
-    func resourceSendStarted(peer: MCPeerID, progress: Progress) {
-        progressByPeer[peer] = progress
-        onSendResource?(peer, progress)
+    @MainActor
+    func invitationReceived(from peerSnapshot: PeerSnapshot, invitationID: UUID)/*, respond: @escaping (Bool) -> Void)*/ {
+        pendingInvitationID = invitationID
+        onInvitationReceived?(peerSnapshot)//, respond)
+    }
+    
+    func sendMessage(_ text: String, to peerSnapshot: PeerSnapshot) async {
+        if let mpc {
+            let data = Data(text.utf8)
+            do {
+                try await mpc.sendMessage(data, to: peerSnapshot)
+            }
+            catch {
+                print("Failed to send message:", error)
+            }
+        }
+    }
+    
+    func receiveMessage(_ text: String, from peerSnapshot: PeerSnapshot) {
+        print("Message from \(peerSnapshot.displayName): \(text)")
+        onMessageReceived?(peerSnapshot, text)
+    }
+    
+    func sendFile(url: URL, to peerSnapshot: PeerSnapshot) async {
+        if let mpc {
+            await mpc.sendFile(at: url, to: peerSnapshot)
+        }
+//        let progress = session.sendResource(at: url, withName: url.lastPathComponent, toPeer: peer) { [weak self] error in
+//            if let error = error {
+//                print("File send failed: \(error)")
+//            } else {
+//                print("File sent successfully to \(peerSnapshot.displayName)")
+//            }
+////            Task {
+////                await self?.resourceSendCompleted(to: peer, error: error)
+////            }
+//            self?.resourceSendCompleted(to: peerSnapshot, error: error)
+//        }
+//        progressByPeer[peerSnapshot.id] = progress
+//        onSendResource?(peerSnapshot, progress)
+    }
+    
+    func fileReceived(url: URL, from peerSnapshot: PeerSnapshot) {
+        print("Received file \(url.lastPathComponent) from \(peerSnapshot.displayName)")
+        onFileReceived?(peerSnapshot, url, "test.txt")
+    }
+    
+    func resourceSendStarted(peerSnapshot: PeerSnapshot, progress: Progress) {
+        progressByPeer[peerSnapshot.id] = progress
+        onSendResource?(peerSnapshot, progress)
     }
 
-    func resourceSendCompleted(to peer: MCPeerID, error: Error?) {
-        progressByPeer[peer] = nil
-        onSendResource?(peer, nil)
+    func resourceSendCompleted(to peerSnapshot: PeerSnapshot, error: Error?) {
+        progressByPeer[peerSnapshot.id] = nil
+        onSendResource?(peerSnapshot, nil)
     }
     
 }

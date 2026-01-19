@@ -13,15 +13,9 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView?
     
-    var peers: [MCPeerID] = []
-    var administrator: MCPeerID?
+    var peers: [PeerSnapshot] = []
+    var administrator: PeerSnapshot?
     
-    // MPCActor instance
-    var mpc: MPCActor?
-    var sessionBridge: MCSessionDelegateBridge?
-    var advertiserBridge: MPCAdvertiserDelegateBridge?
-    var browserBridge: MPCBrowserDelegateBridge?
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -29,46 +23,47 @@ class ViewController: UIViewController {
         tableView?.dataSource = self
         tableView?.delegate = self
 
-//        setupMPCActor()
-        PeerSessionManager.shared.setup()
         setupPeerSessionCallbacks()
-        
-        //tableView?.register(UITableViewCell.self, forCellReuseIdentifier: "PeerCell")
     }
 
     // MARK: - PeerSessionManager callbacks
     
     func setupPeerSessionCallbacks() {
         
-        PeerSessionManager.shared.setup()
-        PeerSessionManager.shared.start()
-        
-        PeerSessionManager.shared.onPeerFound = { [weak self] peerID, _ in
-                self?.peers.append(peerID)
+        Task {
+            await PeerSessionManager.shared.setup()
+            await PeerSessionManager.shared.start()
+        }
+        PeerSessionManager.shared.onPeerFound = { [weak self] peerSnapshot, _ in
+                self?.peers.append(peerSnapshot)
                 self?.tableView?.reloadData()
-                self?.flashAlert("Found peer: \(peerID.displayName)")
+            self?.flashAlert("Found peer: \(peerSnapshot.displayName)")
             }
 
-        PeerSessionManager.shared.onPeerLost = { [weak self] peerID in
-                self?.peers.removeAll { $0 == peerID }
+        PeerSessionManager.shared.onPeerLost = { [weak self] peerSnapshot in
+                self?.peers.removeAll { $0 == peerSnapshot }
                 self?.tableView?.reloadData()
-                self?.flashAlert("Lost peer: \(peerID.displayName)")
+                self?.flashAlert("Lost peer: \(peerSnapshot.displayName)")
             }
 
-        PeerSessionManager.shared.onInvitationReceived = { [weak self] peerName, respond in
+        PeerSessionManager.shared.onInvitationReceived = { [weak self] peerSnapshot in
                 guard let self else { return }
-                print("🖥 Showing invite UI for \(peerName)")
+                print("🖥 Showing invite UI for \(peerSnapshot.displayName)")
                 Task { @MainActor in
                     let alert = UIAlertController(
                         title: "Connection Request",
-                        message: "\(peerName) wants to connect.",
+                        message: "\(peerSnapshot.displayName) wants to connect.",
                         preferredStyle: .alert
                     )
                     alert.addAction(UIAlertAction(title: "Accept", style: .default) { _ in
-                        respond(true)
+                        Task {
+                            PeerSessionManager.shared.acceptInvitation(true)
+                        }
                     })
                     alert.addAction(UIAlertAction(title: "Decline", style: .cancel) { _ in
-                        respond(false)
+                        Task {
+                            PeerSessionManager.shared.acceptInvitation(false)
+                        }
                     })
                     self.present(alert, animated: true)
                 }
@@ -86,12 +81,12 @@ class ViewController: UIViewController {
             self?.tableView?.reloadData()
         }
         
-        PeerSessionManager.shared.onMessageReceived = { [weak self] peerID, message in
+        PeerSessionManager.shared.onMessageReceived = { [weak self] peerSnapshot, message in
                 guard let self else { return }
-                print("🖥 Showing UI messaged received from \(peerID.displayName)")
+                print("🖥 Showing UI messaged received from \(peerSnapshot.displayName)")
                 Task { @MainActor in
                     let alert = UIAlertController(
-                        title: "Message from \(peerID.displayName)",
+                        title: "Message from \(peerSnapshot.displayName)",
                         message: "\(message)",
                         preferredStyle: .alert
                     )
@@ -100,12 +95,12 @@ class ViewController: UIViewController {
                 }
             }
         
-        PeerSessionManager.shared.onFileReceived = { [weak self] peerID, url, name in
+        PeerSessionManager.shared.onFileReceived = { [weak self] peerSnapshot, url, name in
                 guard let self else { return }
-                print("🖥 Showing UI file received from \(peerID.displayName)")
+                print("🖥 Showing UI file received from \(peerSnapshot.displayName)")
                 Task { @MainActor in
                     let alert = UIAlertController(
-                        title: "File from \(peerID.displayName)",
+                        title: "File from \(peerSnapshot.displayName)",
                         message: "\(name)",
                         preferredStyle: .alert
                     )
@@ -114,12 +109,12 @@ class ViewController: UIViewController {
                 }
             }
         
-        PeerSessionManager.shared.onSendResource = { [weak self] peer, progress in
+        PeerSessionManager.shared.onSendResource = { [weak self] peerSnapshot, progress in
             Task { @MainActor in
                 guard let self else { return }
 
                 if let progress {
-                    self.observe(progress, for: peer)
+                    self.observe(progress, for: peerSnapshot)
                 }
                 self.tableView?.reloadData()
             }
@@ -129,7 +124,7 @@ class ViewController: UIViewController {
     func flashAlert(_ message: String) {
         let alert = UIAlertController(title: "Info", message: message, preferredStyle: .alert)
         present(alert, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             alert.dismiss(animated: true)
         }
     }
@@ -142,16 +137,18 @@ class ViewController: UIViewController {
     
     // MARK: - Peer Retrieve File/Message progress
     
-    func updateProgress(_ value: Double, for peer: MCPeerID) {
-        guard let row = peers.firstIndex(of: peer) else { return }
-        let indexPath = IndexPath(row: row, section: 0)
-
-        if let cell = tableView?.cellForRow(at: indexPath) as? PeerCell {
-            cell.progressView?.isHidden = false
-            cell.progressView?.progress = Float(value)
+    func updateProgress(_ value: Double, for peerSnapshot: PeerSnapshot) {
+        if let row = peers.map({ $0.id }).firstIndex(of: peerSnapshot.id) {
+            let indexPath = IndexPath(row: row, section: 0)
+            
+            if let cell = tableView?.cellForRow(at: indexPath) as? PeerCell {
+                cell.progressView?.isHidden = false
+                cell.progressView?.progress = Float(value)
+            }
         }
     }
     
+    nonisolated
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
        // guard let progress = object as? Progress else { return }
 
@@ -162,7 +159,7 @@ class ViewController: UIViewController {
     
     // MARK: - Observation of Peer Progress
     
-    private func observe(_ progress: Progress, for peer: MCPeerID) {
+    private func observe(_ progress: Progress, for peer: PeerSnapshot) {
         progress.addObserver(self, forKeyPath: #keyPath(Progress.fractionCompleted), options: [.new], context: nil)
     }
 
@@ -174,22 +171,25 @@ extension ViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let ps = PeerSessionManager.shared
+        print("Peers: \(ps.peers.count)")
         return /*(ps.administrator != nil ? 1 : 0) +*/ ps.peers.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "PeerCell", for: indexPath) as? PeerCell {
-            let ps = PeerSessionManager.shared
+        let ps = PeerSessionManager.shared
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "PeerCell", for: indexPath) as? PeerCell,
+           ps.peers.count > 0 {
+            
 //            if let admin = ps.administrator, indexPath.row == 0 {
 //                cell.nameLabel?.text = "👑 \(admin.displayName)" // mark admin with crown
 //                return cell
 //            }
-            
-            let peerIndex = /*(ps.administrator != nil) ? indexPath.row - 1 :*/ indexPath.row
-            let peerID = ps.peers[indexPath.row]
-            let state = PeerSessionManager.shared.peerStates[peerID] ?? .notConnected
-            
-            cell.nameLabel?.text = peerID.displayName
+            print("peerStates read in manager:", ObjectIdentifier(ps))
+            //let peerIndex = /*(ps.administrator != nil) ? indexPath.row - 1 :*/ indexPath.row
+            let peerSnapshot = ps.peers[indexPath.row]
+            let state = ps.peerStates[peerSnapshot.id] ?? .notConnected
+    
+            cell.nameLabel?.text = peerSnapshot.displayName
             
             switch state {
                 case .connected:
@@ -207,12 +207,12 @@ extension ViewController: UITableViewDataSource {
             }
             
             cell.onSendMessage = {
-                PeerSessionManager.shared.sendTestMessage(to: peerID)
+                PeerSessionManager.shared.sendTestMessage(to: peerSnapshot)
             }
             cell.onSendFile = {
-                PeerSessionManager.shared.sendTestFile(to: peerID)
+                PeerSessionManager.shared.sendTestFile(to: peerSnapshot)
             }
-            if let progress = PeerSessionManager.shared.progressByPeer[peerID] {
+            if let progress = PeerSessionManager.shared.progressByPeer[peerSnapshot.id] {
                 cell.progressView?.isHidden = false
                 cell.progressView?.progress = Float(progress.fractionCompleted)
             }
@@ -236,9 +236,9 @@ extension ViewController: UITableViewDataSource {
 extension ViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let peer = PeerSessionManager.shared.peers[indexPath.row]
+        let peerSnapshot = PeerSessionManager.shared.peers[indexPath.row]
         Task {
-            await PeerSessionManager.shared.invite(peer: peer)
+            await PeerSessionManager.shared.invite(peerSnapshot: peerSnapshot)
         }
     }
 //    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

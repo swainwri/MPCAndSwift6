@@ -27,7 +27,7 @@
 	<string>This app uses Bluetooth to find nearby devices for peer-to-peer connections.</string>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_mpcandswift6demo._tcp</string>
+		<string>_mpcandswift6._tcp</string>
 	</array>
 </dict>
 </plist>

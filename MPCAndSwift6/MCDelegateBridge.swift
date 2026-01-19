@@ -9,7 +9,6 @@
 import Foundation
 import MultipeerConnectivity
 
-@MainActor
 final class MCSessionDelegateBridge: NSObject, MCSessionDelegate {
     
     unowned let actor: MPCActor
@@ -19,67 +18,93 @@ final class MCSessionDelegateBridge: NSObject, MCSessionDelegate {
         super.init()
     }
 
-    func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-        Task {
-            await actor.peerStateChanged(peerID, state: state)
-        }
+    nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+        actor.peerStateChangedFromDelegate(peerID, state: state)
     }
     
-    func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
-//        Task {
-//            await actor.receivedMessage(stream, from: peerID)
-//        }
+    nonisolated func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
+//        actor.receivedMessage(stream, from: peerID)
     }
     
-    func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-        Task {
-            await actor.receivedMessage(data, from: peerID)
-        }
+    nonisolated func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+        actor.receivedMessageFromDelegate(data, from: peerID)
     }
     
-    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: ProgressSnapshot) {
+    nonisolated func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: ProgressSnapshot) {
+        let objectIdentifier = ObjectIdentifier(peerID)
         Task { @MainActor in
-            await actor.updateProgress(fractionCompleted: progress.fractionCompleted, filename: resourceName, peers: [ObjectIdentifier(peerID)])
+            await actor.updateProgress(fractionCompleted: progress.fractionCompleted, filename: resourceName, peers: [objectIdentifier])
         }
     }
     
-    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
+    nonisolated func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
         if let url = localURL {
-            Task {
-                await actor.receivedFile(url: url, from: peerID, error: error)
-            }
+            actor.receivedFileFromDelegate(url: url, from: peerID, error: error)
         }
     }
     
-    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
+    nonisolated func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
         
     }
     
 }
 
-@MainActor
-final class MPCAdvertiserDelegateBridge: NSObject, MCNearbyServiceAdvertiserDelegate {
-    unowned let actor: MPCActor
 
-    init(actor: MPCActor) {
-        self.actor = actor
+final class MPCAdvertiserDelegateBridge: NSObject, MCNearbyServiceAdvertiserDelegate {
+    
+    nonisolated(unsafe) var pendingInvitationHandler: ((Bool, MCSession?) -> Void)?
+    private let session: MCSession
+    private weak var manager: PeerSessionManager?
+
+    init(session: MCSession, manager: PeerSessionManager) {
+        self.session = session
+        self.manager = manager
         super.init()
     }
 
+    @MainActor
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-        Task {
-            await actor.handleInvitation(from: peerID, context: context, invitationHandler: invitationHandler)
-        }
+        // Capture everything synchronously
+        guard let manager = self.manager,
+                  let session = manager.session
+            else {
+                print("❌ NO SESSION AVAILABLE – rejecting invite")
+                invitationHandler(false, nil)
+                return
+            }
+
+            print("📨 INVITE RECEIVED from:", peerID.displayName)
+            print("📦 SESSION USED FOR INVITE:", ObjectIdentifier(session))
+
+            // ✅ THIS MUST BE THE SAME SESSION AS start()
+//            invitationHandler(true, session)
+
+            Task { @MainActor in
+                if let snapshot = await manager.mpcActorSnapshot(for: peerID) {
+                    manager.invitationReceived(from: snapshot) { accept in
+                        invitationHandler(accept, accept ? session : nil)
+                    }
+                }
+            }
     }
     
-    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
+    nonisolated func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
         Task { @MainActor in
             print("Failed to advertise: \(error.localizedDescription)")
         }
     }
+    
+    func resolveInvitation(accept: Bool) {
+        if let session = self.manager?.session {
+            guard let handler = pendingInvitationHandler else { return }
+            
+            handler(accept, accept ? session : nil)
+            pendingInvitationHandler = nil
+        }
+    }
 }
 
-@MainActor
+
 final class MPCBrowserDelegateBridge: NSObject, MCNearbyServiceBrowserDelegate {
     unowned let actor: MPCActor
 
@@ -88,20 +113,17 @@ final class MPCBrowserDelegateBridge: NSObject, MCNearbyServiceBrowserDelegate {
         super.init()
     }
 
-    func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
-        Task {
-            await actor.foundPeer(peerID, discoveryInfo: info)
-        }
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
+        print("FOUND PEER:", peerID.displayName)
+        actor.foundPeerFromDelegate(peerID: peerID, discoveryInfo: info)
     }
 
-    func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        Task {
-            await actor.lostPeer(peerID)
-        }
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
+        actor.lostPeerFromDelegate(peerID: peerID)
     }
 
-    func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
-        Task {
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
+        Task { @MainActor in
             await actor.browserFailed(error)
         }
     }
