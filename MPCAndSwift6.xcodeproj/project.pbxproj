@@ -24,6 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		E30E6ADE2F1DD55A006D4460 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E3A18DA42F1623980094B138 /* MPCAndSwift6.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MPCAndSwift6.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3A18DBD2F16239A0094B138 /* MPCAndSwift6Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MPCAndSwift6Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3A18DC72F16239A0094B138 /* MPCAndSwift6UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MPCAndSwift6UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,6 +89,7 @@
 		E3A18D9B2F1623980094B138 = {
 			isa = PBXGroup;
 			children = (
+				E30E6ADE2F1DD55A006D4460 /* README.md */,
 				E3A18DA62F1623980094B138 /* MPCAndSwift6 */,
 				E3A18DC02F16239A0094B138 /* MPCAndSwift6Tests */,
 				E3A18DCA2F16239A0094B138 /* MPCAndSwift6UITests */,

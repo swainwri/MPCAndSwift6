@@ -16,17 +16,17 @@ This project was built from the ground up after repeated failures trying to retr
 
 ### What This Project Does
 
--      Discovers nearby peers
--      Displays peers in a UITableView
--      Sends and receives invitations
--      Accepts / rejects connections via UI
--      Tracks per-peer connection state
--      Sends and receives messages
--      Sends and receives small files
--      Shows per-peer file transfer progress
--      Runs on real iOS devices (not simulators)
+-    Discovers nearby peers
+-    Displays peers in a UITableView
+-    Sends and receives invitations
+-    Accepts / rejects connections via UI
+-    Tracks per-peer connection state
+-    Sends and receives messages
+-    Sends and receives small files
+-    Shows per-peer file transfer progress
+-    Runs on real iOS devices (not simulators)
 
-Important: MultipeerConnectivity does work on a Simulator, but at least 2 devices are better.
+Important: MultipeerConnectivity does work on a Simulator.
 This project is designed to be tested on two physical iOS devices.
 
 ### Architecture Overview
